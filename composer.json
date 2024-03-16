@@ -1,7 +1,6 @@
 {
   "name": "milceo/milceo",
   "description": "A lightweight framework for PHP 8.3",
-  "version": "1.0.0",
   "type": "library",
   "keywords": [
     "framework"
