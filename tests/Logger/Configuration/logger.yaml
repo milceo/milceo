@@ -1,0 +1,4 @@
+logger:
+  format: "[{level}] {message}"
+  file: "/tmp/log.txt"
+  level: "INFO"
