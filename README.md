@@ -2,8 +2,21 @@
   <img src="https://github.com/milceo/assets/blob/main/logo.png" alt="Milceo logo" width=450>
 </p>
 
+<p align="center">
+    <a href="LICENSE" target="_blank">
+        <img alt="Software License" src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square">
+    </a>
+    <a href="https://codecov.io/gh/milceo/milceo"> 
+        <img alt="Code coverage" src="https://img.shields.io/codecov/c/github/milceo/milceo?style=flat-square"/> 
+    </a>
+    <a href="https://packagist.org/packages/cakephp/cakephp" target="_blank">
+        <img alt="Latest Stable Version" src="https://img.shields.io/packagist/v/milceo/milceo?style=flat-square&label=stable">
+    </a>
+</p>
+
 Milceo is a **lightweight** and **fast** framework for PHP 8.3. Milceo is designed to be **simple** and **easy to use**.
-If you are familiar with [Symfony](https://github.com/symfony/symfony), you will find that Milceo is very similar in many ways.
+If you are familiar with [Symfony](https://github.com/symfony/symfony), you will find that Milceo is very similar in
+many ways.
 
 ## Table of contents
 
@@ -17,7 +30,8 @@ If you are familiar with [Symfony](https://github.com/symfony/symfony), you will
 
 First, you will need to install [Composer](https://getcomposer.org/) if you haven't already.
 You can either download the executable locally or globally.
-Please refer to the [official documentation](https://getcomposer.org/doc/00-intro.md#downloading-the-composer-executable)
+Please refer to the
+[official documentation](https://getcomposer.org/doc/00-intro.md#downloading-the-composer-executable)
 for more information.
 
 ### :computer: Create a new project

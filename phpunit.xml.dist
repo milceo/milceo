@@ -9,4 +9,16 @@
             <directory>tests/</directory>
         </testsuite>
     </testsuites>
+
+    <source>
+        <include>
+            <directory>src</directory>
+        </include>
+    </source>
+
+    <coverage>
+        <report>
+            <html outputDirectory="var/coverage"/>
+        </report>
+    </coverage>
 </phpunit>

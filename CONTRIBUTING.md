@@ -19,8 +19,8 @@ If you need help or have a question, prefer to use [Discussions](https://github.
 
 ### :bug: Bug reports
 
-If you find a bug in the project, you can [open an issue](https://github.com/milceo/milceo/issues) and select the **Bug
-report** template.
+If you find a bug in the project, you can [open an issue](https://github.com/milceo/milceo/issues)
+and select the **Bug report** template.
 
 Please provide as much information as possible, including steps to reproduce the bug, what you expected to happen, and
 what actually happened. You can also include screenshots, videos, or code samples.
@@ -33,15 +33,16 @@ If you have an idea for a new feature, you can [open an issue](https://github.co
 **Feature request** template.
 
 Please provide as much information as possible, including a description of the feature, why you think it would be
-useful, and any other context or examples that might be helpful. You can also include screenshots, videos, or code
-samples.
+useful, and any other context or examples that might be helpful.
+You can also include screenshots, videos, or code samples.
 
 If you are able to implement the feature, you can also [submit a pull request](#submitting-a-pull-request).
 
 ## Submitting a Pull Request
 
-Before submitting a pull request, please open an issue to discuss the proposed changes. This will help ensure that your
-contribution is aligned with the goals of Milceo and that you are not duplicating work that is already in progress.
+Before submitting a pull request, please open an issue to discuss the proposed changes.
+This will help ensure that your contribution is aligned with the goals of Milceo and that you are not duplicating work
+that is already in progress.
 
 ### :computer: Clone the repository
 
@@ -109,7 +110,8 @@ If your pull request fixes an open issue, please reference the issue in your pul
 
 ## Coding standards
 
-This project follows the [PSR-12](https://www.php-fig.org/psr/psr-12/) coding standard. Please ensure that your contributions adhere to this standard.
+This project follows the [PSR-12](https://www.php-fig.org/psr/psr-12/) coding standard.
+Please ensure that your contributions adhere to this standard.
 
 Please also ensure that your code is well-documented.
 

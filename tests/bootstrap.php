@@ -1,6 +1,6 @@
 <?php
 
-/*
+/**
  * Copyright (c) 2024 Juan Valero
  *
  * Licensed under the MIT License
