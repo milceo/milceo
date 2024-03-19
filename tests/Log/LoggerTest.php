@@ -9,12 +9,12 @@
 
 declare(strict_types=1);
 
-namespace Milceo\Tests\Logger;
+namespace Milceo\Tests\Log;
 
-use Milceo\Logger\LoggerFactory;
-use Milceo\Logger\LoggerImpl;
-use Milceo\Logger\LogLevel;
-use Milceo\Tests\Logger\Enums\Gender;
+use Milceo\Log\LoggerFactory;
+use Milceo\Log\LoggerImpl;
+use Milceo\Log\LogLevel;
+use Milceo\Tests\Log\Enums\Gender;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 

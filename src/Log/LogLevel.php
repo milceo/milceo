@@ -9,7 +9,7 @@
 
 declare(strict_types=1);
 
-namespace Milceo\Logger;
+namespace Milceo\Log;
 
 /**
  * Describes the severity of a log message according to {@link http://tools.ietf.org/html/rfc5424 RFC 5424}.

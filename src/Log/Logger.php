@@ -9,7 +9,7 @@
 
 declare(strict_types=1);
 
-namespace Milceo\Logger;
+namespace Milceo\Log;
 
 /**
  * Represents a logger.

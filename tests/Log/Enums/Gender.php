@@ -9,7 +9,7 @@
 
 declare(strict_types=1);
 
-namespace Milceo\Tests\Logger\Enums;
+namespace Milceo\Tests\Log\Enums;
 
 enum Gender
 {
