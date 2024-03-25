@@ -9,195 +9,251 @@
 
 declare(strict_types=1);
 
-namespace Milceo\Tests\Log;
-
-use Milceo\Log\LoggerFactory;
-use Milceo\Log\LoggerImpl;
-use Milceo\Log\LogLevel;
-use Milceo\Tests\Log\Enums\Gender;
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\TestCase;
-
-class LoggerTest extends TestCase
-{
-    private const string LOG_FILE = '/tmp/log.txt';
-
-    private const string CONFIGURATION_FILE = __DIR__ . '/Configuration/logger.ini';
-    private const string EMPTY_CONFIGURATION_FILE = __DIR__ . '/Configuration/empty_logger.ini';
-    private const string YAML_CONFIGURATION_FILE = __DIR__ . '/Configuration/logger.yaml';
-    private const string INVALID_CONFIGURATION_FILE = __DIR__ . '/Configuration/invalid_logger.ini';
-
-    public static function provideLogLevels(): array
+namespace Milceo\Log {
+    function debug_backtrace(): array
     {
-        return array_map(
-            fn(LogLevel $level): array => [$level],
-            LogLevel::cases(),
-        );
-    }
-
-    #[DataProvider('provideLogLevels')]
-    public function testLog(LogLevel $level): void
-    {
-        $logger = (new LoggerFactory())->fromProperties([
-            'format' => '[{level}] {message}',
-            'output' => self::LOG_FILE,
-            'level' => LogLevel::DEBUG,
-        ]);
-
-        $logger->log(
-            $level,
-            '{username} with gender {gender} has logged in',
-            ['gender' => Gender::MALE, 'username' => 'John Doe'],
-        );
-
-        $logFile = fopen(self::LOG_FILE, 'r');
-        $content = stream_get_contents(stream: $logFile);
-
-        self::assertEquals("[$level->name] John Doe with gender MALE has logged in", $content);
-    }
-
-    public function testLogWithLevelBelowMinimum(): void
-    {
-        $logger = (new LoggerFactory())->fromProperties(
+        return [
             [
-                'format' => '[{level}] {message}',
-                'output' => self::LOG_FILE,
-                'level' => LogLevel::WARNING,
+                'class' => 'Milceo\Tests\Log\LoggerTest',
+                'line' => 42,
             ],
-        );
-
-        $logger->log(
-            LogLevel::INFO,
-            'This message should not be logged',
-        );
-
-        $logFile = fopen(self::LOG_FILE, 'r');
-        $content = stream_get_contents(stream: $logFile);
-
-        self::assertEquals('', $content);
+        ];
     }
+}
 
-    public function testLogWithProperties(): void
+namespace Milceo\Tests\Log {
+
+    use Milceo\Log\Handler\StreamHandler;
+    use Milceo\Log\Logger;
+    use Milceo\Log\LogLevel;
+    use Milceo\Tests\Log\Assets\Gender;
+    use Milceo\Tests\Log\Assets\User;
+    use Milceo\Tests\Log\Assets\UserWithToStringMethod;
+    use PHPUnit\Framework\Attributes\DataProvider;
+    use PHPUnit\Framework\TestCase;
+
+    class LoggerTest extends TestCase
     {
-        $logger = (new LoggerFactory())->fromProperties(
-            [
-                'format' => '[{level}] {message}',
-                'output' => self::LOG_FILE,
-                'level' => LogLevel::INFO,
-            ],
-        );
+        public static function provideLogLevels(): array
+        {
+            return array_map(
+                fn(LogLevel $level): array => [$level],
+                LogLevel::cases(),
+            );
+        }
 
-        $logger->log(
-            LogLevel::INFO,
-            'John Doe has logged in',
-        );
+        #[DataProvider('provideLogLevels')]
+        public function testRecordLog(LogLevel $level)
+        {
+            $stream = fopen('php://memory', 'a+');
 
-        $logFile = fopen(self::LOG_FILE, 'r');
-        $content = stream_get_contents(stream: $logFile, offset: 0);
+            $logger = (new Logger())
+                ->withName('Milceo')
+                ->withHandler((new StreamHandler($stream))->withLevel(LogLevel::DEBUG));
 
-        self::assertEquals('[INFO] John Doe has logged in', $content);
-    }
+            self::assertEquals('Milceo', $logger->getName());
 
-    public function testLogWithEmptyProperties()
-    {
-        /**
-         * @var LoggerImpl $logger
-         */
-        $logger = (new LoggerFactory())->fromProperties();
+            $logger->log($level, 'Hello World', date: new \DateTime('2024-01-01 00:00:00'));
 
-        self::assertEquals(LoggerFactory::DEFAULT_FORMAT, $logger->getFormat());
-        self::assertEquals(LoggerFactory::DEFAULT_FILE, stream_get_meta_data($logger->getOutputFile())['uri']);
-        self::assertEquals(LogLevel::INFO, $logger->getLevel());
-    }
+            rewind($stream);
 
-    public function testLogWithConfigurationFile(): void
-    {
-        $logger = (new LoggerFactory())->fromConfiguration(self::CONFIGURATION_FILE);
+            $content = stream_get_contents($stream);
 
-        $logger->log(
-            LogLevel::INFO,
-            'John Doe has logged in',
-        );
+            self::assertEquals("[Milceo] [2024-01-01T00:00:00+00:00] [Milceo\Tests\Log\LoggerTest:42] - [$level->name] Hello World" . PHP_EOL, $content);
+        }
 
-        $logFile = fopen(self::LOG_FILE, 'r');
-        $content = stream_get_contents(stream: $logFile);
+        public function testLogIsNotRecordedIfLevelIsBelowMinimum()
+        {
+            $stream = fopen('php://memory', 'a+');
 
-        self::assertEquals('[INFO] John Doe has logged in', $content);
-    }
+            $logger = (new Logger())
+                ->withHandler(
+                    (new StreamHandler($stream))
+                        ->withLevel(LogLevel::WARNING)
+                        ->withFormat('[{level}] {message}'),
+                );
 
-    public function testLogWithEmptyConfigurationFile()
-    {
-        $loggerFactoryMock = $this->getMockBuilder(LoggerFactory::class)
-            ->onlyMethods(['fromProperties'])
-            ->getMock();
+            $logger->log(LogLevel::DEBUG, 'Hello World', date: new \DateTime('2024-01-01 00:00:00'));
+            $logger->log(LogLevel::INFO, 'Hello World', date: new \DateTime('2024-01-01 00:00:00'));
+            $logger->log(LogLevel::WARNING, 'Hello World', date: new \DateTime('2024-01-01 00:00:00'));
 
-        $loggerFactoryMock->expects($this->once())
-            ->method('fromProperties')
-            ->with([]);
+            rewind($stream);
 
-        $loggerFactoryMock->fromConfiguration(self::EMPTY_CONFIGURATION_FILE);
-    }
+            $content = stream_get_contents($stream);
 
-    public function testLogWithYamlConfigurationFile()
-    {
-        $this->expectException(\InvalidArgumentException::class);
+            self::assertEquals('[WARNING] Hello World' . PHP_EOL, $content);
+        }
 
-        (new LoggerFactory())->fromConfiguration(self::YAML_CONFIGURATION_FILE);
-    }
+        public function testRecordLogWithCustomFormat()
+        {
+            $stream = fopen('php://memory', 'a+');
 
-    public function testLogWithInvalidConfigurationFile()
-    {
-        $this->expectException(\InvalidArgumentException::class);
+            $logger = (new Logger())
+                ->withHandler((new StreamHandler($stream))->withFormat('[{level}] {message}'))
+                ->withHandler((new StreamHandler($stream))->withFormat('{message}'));
 
-        (new LoggerFactory())->fromConfiguration(self::INVALID_CONFIGURATION_FILE);
-    }
+            $logger->log(LogLevel::INFO, 'Hello World', date: new \DateTime('2024-01-01 00:00:00'));
 
-    public function testLogWithUnknownConfigurationFile(): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
+            rewind($stream);
 
-        (new LoggerFactory())->fromConfiguration('/path/to/invalid/file');
-    }
+            $content = stream_get_contents($stream);
 
-    public function testLogWithEmptyContext(): void
-    {
-        $logger = (new LoggerFactory())->fromProperties([
-            'format' => '[{level}] {message}',
-            'output' => self::LOG_FILE,
-        ]);
+            self::assertEquals('[INFO] Hello World' . PHP_EOL . 'Hello World' . PHP_EOL, $content);
+        }
 
-        $logger->log(
-            LogLevel::INFO,
-            'John Doe has logged in',
-        );
+        public function testRecordLogWithCustomDateFormat()
+        {
+            $stream = fopen('php://memory', 'a+');
 
-        $logFile = fopen(self::LOG_FILE, 'r');
-        $content = stream_get_contents(stream: $logFile, offset: 0);
+            $logger = (new Logger())
+                ->withHandler((new StreamHandler($stream))->withFormat('[{date}] [{level}] {message}')->withDateFormat('Y-m-d'))
+                ->withHandler((new StreamHandler($stream))->withFormat('[{date}] [{level}] {message}')->withDateFormat('Y-m-d H:i:s'));
 
-        self::assertEquals('[INFO] John Doe has logged in', $content);
-    }
+            $logger->log(LogLevel::INFO, 'Hello World', date: new \DateTime('2024-01-01 00:00:00'));
 
-    public function testLogWithInvalidContext(): void
-    {
-        $logger = (new LoggerFactory())->fromProperties([
-            'format' => '[{level}] {message}',
-            'output' => self::LOG_FILE,
-        ]);
+            rewind($stream);
 
-        $logger->log(
-            LogLevel::INFO,
-            '{username} has logged in',
-            ['username' => []],
-        );
+            $content = stream_get_contents($stream);
 
-        $logFile = fopen(self::LOG_FILE, 'r');
-        $content = stream_get_contents(stream: $logFile, offset: 0);
+            self::assertEquals('[2024-01-01] [INFO] Hello World' . PHP_EOL . '[2024-01-01 00:00:00] [INFO] Hello World' . PHP_EOL, $content);
+        }
 
-        self::assertEquals('[INFO] {username} has logged in', $content);
-    }
+        public function testRecordLogWithContext()
+        {
+            $stream = fopen('php://memory', 'a+');
 
-    protected function tearDown(): void
-    {
-        file_put_contents(self::LOG_FILE, '');
+            $logger = (new Logger())
+                ->withHandler((new StreamHandler($stream))->withFormat('[{level}] {message}'));
+
+            $logger->log(LogLevel::INFO, '{name} ({gender}) is {age} years old', [
+                'name' => 'John Doe',
+                'gender' => Gender::MALE,
+                'age' => 42,
+            ]);
+
+            rewind($stream);
+
+            $content = stream_get_contents($stream);
+
+            self::assertEquals('[INFO] John Doe (MALE) is 42 years old' . PHP_EOL, $content);
+        }
+
+        public function testRecordLogWithDateContextValue()
+        {
+            $stream = fopen('php://memory', 'a+');
+
+            $logger = (new Logger())
+                ->withHandler((new StreamHandler($stream))->withFormat('[{level}] {message}')->withDateFormat('Y-m-d'));
+
+            $logger->log(LogLevel::INFO, 'Today is {date}', [
+                'date' => new \DateTime('2024-01-01 00:00:00'),
+            ]);
+
+            rewind($stream);
+
+            $content = stream_get_contents($stream);
+
+            self::assertEquals('[INFO] Today is 2024-01-01' . PHP_EOL, $content);
+        }
+
+        public function testRecordLogWithArrayContextValue()
+        {
+            $stream = fopen('php://memory', 'a+');
+
+            $logger = (new Logger())
+                ->withHandler((new StreamHandler($stream))->withFormat('[{level}] {message}'));
+
+            $logger->log(LogLevel::INFO, 'Languages: {languages}', [
+                'languages' => ['PHP', 'Java', 'Python'],
+            ]);
+
+            $logger->log(LogLevel::INFO, 'Languages: {languages}', [
+                'languages' => [
+                    'PHP' => 'Hypertext Preprocessor',
+                    'Java' => 'Just Another Vague Acronym',
+                    'Python' => 'Monty Python',
+                ],
+            ]);
+
+            rewind($stream);
+
+            $content = stream_get_contents($stream);
+
+            self::assertEquals('[INFO] Languages: ["PHP","Java","Python"]' . PHP_EOL . '[INFO] Languages: {"PHP":"Hypertext Preprocessor","Java":"Just Another Vague Acronym","Python":"Monty Python"}' . PHP_EOL, $content);
+        }
+
+        public function testRecordLogWithObjectContextValue()
+        {
+            $stream = fopen('php://memory', 'a+');
+
+            $logger = (new Logger())
+                ->withHandler((new StreamHandler($stream))->withFormat('[{level}] {message}'));
+
+            $logger->log(LogLevel::INFO, 'User : {user}', [
+                'user' => new User('John Doe'),
+            ]);
+
+            rewind($stream);
+
+            $content = stream_get_contents($stream);
+
+            self::assertEquals('[INFO] User : [object Milceo\Tests\Log\Assets\User]' . PHP_EOL, $content);
+        }
+
+        public function testRecordLogWithObjectWithToStringMethodContextValue()
+        {
+            $stream = fopen('php://memory', 'a+');
+
+            $logger = (new Logger())
+                ->withHandler((new StreamHandler($stream))->withFormat('[{level}] {message}'));
+
+            $logger->log(LogLevel::INFO, 'User : {user}', [
+                'user' => new UserWithToStringMethod('John Doe'),
+            ]);
+
+            rewind($stream);
+
+            $content = stream_get_contents($stream);
+
+            self::assertEquals('[INFO] User : John Doe' . PHP_EOL, $content);
+        }
+
+        public function testRecordLogWithClosureContextValue()
+        {
+            $stream = fopen('php://memory', 'a+');
+
+            $logger = (new Logger())
+                ->withHandler((new StreamHandler($stream))->withFormat('[{level}] {message}'));
+
+            $logger->log(LogLevel::INFO, 'User : {user}', [
+                'user' => function () {
+
+                },
+            ]);
+
+            rewind($stream);
+
+            $content = stream_get_contents($stream);
+
+            self::assertEquals('[INFO] User : [object Closure]' . PHP_EOL, $content);
+        }
+
+        public function testRecordLogWithUnknownContextKey()
+        {
+            $stream = fopen('php://memory', 'a+');
+
+            $logger = (new Logger())
+                ->withHandler((new StreamHandler($stream))->withFormat('[{level}] {message}'));
+
+            $logger->log(LogLevel::INFO, '{name} logged in', [
+                'username' => 'John Doe',
+            ]);
+
+            rewind($stream);
+
+            $content = stream_get_contents($stream);
+
+            self::assertEquals('[INFO] {name} logged in' . PHP_EOL, $content);
+        }
     }
 }

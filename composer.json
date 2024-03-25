@@ -19,10 +19,7 @@
   "autoload": {
     "psr-4": {
       "Milceo\\": "src/"
-    },
-    "files": [
-      "src/Utils/utils.php"
-    ]
+    }
   },
   "autoload-dev": {
     "psr-4": {
