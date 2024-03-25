@@ -72,7 +72,7 @@ You are also encouraged to write new tests for your changes.
 > [!IMPORTANT]
 > We use [PHPUnit](https://phpunit.de/) for testing.
 > The library is not listed as a dependency in the `composer.json` file [^1]. To run the tests, you will need to
-> use the `phpunit.phar` file that is included in the `tools` directory.
+> use the `phpunit.phar` file that is included in the root directory.
 
 Use the following command to run the tests:
 
