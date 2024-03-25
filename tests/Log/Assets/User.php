@@ -9,10 +9,12 @@
 
 declare(strict_types=1);
 
-namespace Milceo\Tests\Log\Enums;
+namespace Milceo\Tests\Log\Assets;
 
-enum Gender
+class User
 {
-    case MALE;
-    case FEMALE;
+    public function __construct(protected readonly string $name)
+    {
+
+    }
 }
